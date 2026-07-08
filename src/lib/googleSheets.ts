@@ -123,3 +123,38 @@ export async function updateGoogleSheetRow(
     requestBody: { values: [row] },
   });
 }
+
+// Remove uma linha inteira da planilha (as linhas abaixo sobem uma posição).
+// rowNumber é o número da linha na planilha (1-based), salvo em google_sheet_row.
+export async function deleteClientRowFromSheet(rowNumber: number): Promise<void> {
+  const sheets = getSheetsClient();
+  const { spreadsheetId, tabName } = getSheetConfig();
+
+  // Descobre o sheetId (gid) da aba pelo nome.
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheet = meta.data.sheets?.find(
+    (s) => s.properties?.title === tabName
+  );
+  const sheetId = sheet?.properties?.sheetId;
+  if (sheetId === undefined || sheetId === null) {
+    throw new Error(`Aba "${tabName}" não encontrada na planilha.`);
+  }
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: "ROWS",
+              startIndex: rowNumber - 1, // 0-based
+              endIndex: rowNumber,
+            },
+          },
+        },
+      ],
+    },
+  });
+}

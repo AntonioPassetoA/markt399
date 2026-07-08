@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 import { clientUpdateSchema } from "@/lib/validations";
-import { updateClientStatusInSheet } from "@/lib/googleSheets";
+import {
+  updateClientStatusInSheet,
+  deleteClientRowFromSheet,
+} from "@/lib/googleSheets";
 import type { Client } from "@/types";
 
 // PATCH /api/clients/[id] — edita dados e/ou status do cliente.
@@ -118,6 +121,14 @@ export async function DELETE(
   }
 
   const admin = createAdminClient();
+
+  // Descobre a linha da planilha antes de excluir do banco.
+  const { data: existing } = await admin
+    .from("clients")
+    .select("google_sheet_row")
+    .eq("id", id)
+    .single<{ google_sheet_row: number | null }>();
+
   const { error } = await admin.from("clients").delete().eq("id", id);
 
   if (error) {
@@ -125,6 +136,27 @@ export async function DELETE(
       { error: "Não foi possível excluir o cliente." },
       { status: 500 }
     );
+  }
+
+  // Remove também da planilha e reajusta os números das linhas de baixo
+  // (que sobem uma posição). Se a planilha falhar, a exclusão do banco vale.
+  const rowNumber = existing?.google_sheet_row;
+  if (rowNumber) {
+    try {
+      await deleteClientRowFromSheet(rowNumber);
+      const { data: below } = await admin
+        .from("clients")
+        .select("id, google_sheet_row")
+        .gt("google_sheet_row", rowNumber);
+      for (const c of below ?? []) {
+        await admin
+          .from("clients")
+          .update({ google_sheet_row: (c.google_sheet_row as number) - 1 })
+          .eq("id", c.id);
+      }
+    } catch (err) {
+      console.error("Falha ao remover a linha do Google Sheets:", err);
+    }
   }
 
   return NextResponse.json({ success: true });
