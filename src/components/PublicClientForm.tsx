@@ -143,15 +143,6 @@ export function PublicClientForm({
                   })}
                 />
 
-                <Textarea
-                  id="principais_informacoes_cliente"
-                  label="Principais informações *"
-                  placeholder="Conte o que for importante: demanda, objetivos, detalhes do seu negócio..."
-                  rows={5}
-                  error={errors.principais_informacoes_cliente?.message}
-                  {...register("principais_informacoes_cliente")}
-                />
-
                 <div className="pt-2">
                   <Button type="submit" loading={isSubmitting} className="w-full">
                     Enviar formulário

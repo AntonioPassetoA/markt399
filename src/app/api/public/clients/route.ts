@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       servico: SERVICO_PADRAO,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      principais_informacoes_cliente: data.principais_informacoes_cliente,
+      principais_informacoes_cliente: data.principais_informacoes_cliente || "",
       status: STATUS_DEFAULT,
       google_sheet_synced: false,
     })
@@ -85,7 +85,6 @@ export async function POST(request: Request) {
       servico: SERVICO_PADRAO,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      principais_informacoes_cliente: data.principais_informacoes_cliente,
       status: STATUS_DEFAULT,
       user_email: profile.email || "",
       user_id: profile.id,

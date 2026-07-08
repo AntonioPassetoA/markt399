@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       servico: data.servico,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      principais_informacoes_cliente: data.principais_informacoes_cliente,
+      principais_informacoes_cliente: data.principais_informacoes_cliente || "",
       status: data.status,
       google_sheet_synced: false,
     })
@@ -72,7 +72,6 @@ export async function POST(request: Request) {
       servico: data.servico,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      principais_informacoes_cliente: data.principais_informacoes_cliente,
       status: data.status,
       user_email: session.email,
       user_id: session.userId,

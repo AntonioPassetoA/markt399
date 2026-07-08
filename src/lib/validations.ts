@@ -23,10 +23,9 @@ export const clientSchema = z.object({
     .trim()
     .min(10, "Informe um WhatsApp válido (mínimo 10 dígitos)."),
   cnpj: z.string().trim().min(14, "Informe o CNPJ completo."),
-  principais_informacoes_cliente: z
-    .string()
-    .trim()
-    .min(5, "As principais informações devem ter pelo menos 5 caracteres."),
+  // Campo mantido no schema/banco por compatibilidade, mas não é mais coletado
+  // nos formulários (opcional).
+  principais_informacoes_cliente: z.string().trim().optional().or(z.literal("")),
   status: z.enum(STATUS_OPTIONS, {
     errorMap: () => ({ message: "Selecione um status válido." }),
   }),

@@ -12,7 +12,6 @@ export interface SheetClientData {
   servico: string;
   whatsapp: string;
   cnpj?: string | null;
-  principais_informacoes_cliente: string;
   status: string;
   user_email: string;
   user_id: string;
@@ -61,9 +60,8 @@ function getSheetConfig() {
 }
 
 // Adiciona uma nova linha na planilha com os dados do cliente.
-// Colunas (A..L): DATA_HORA_ENVIO, CLIENTE, INFORMACOES, IMPULSIONAMENTO,
-// SERVICO, WHATSAPP, CNPJ, PRINCIPAIS_INFORMACOES_CLIENTE, STATUS,
-// EMAIL_USUARIO, ID_USUARIO, ID_REGISTRO.
+// Colunas (A..K): DATA_HORA_ENVIO, CLIENTE, INFORMACOES, IMPULSIONAMENTO,
+// SERVICO, WHATSAPP, CNPJ, STATUS, EMAIL_USUARIO, ID_USUARIO, ID_REGISTRO.
 // Retorna o número da linha inserida (para atualizações futuras) ou null.
 export async function appendClientToSheet(
   clientData: SheetClientData
@@ -79,16 +77,15 @@ export async function appendClientToSheet(
     clientData.servico, // E
     clientData.whatsapp, // F
     clientData.cnpj || "", // G
-    clientData.principais_informacoes_cliente, // H
-    clientData.status, // I
-    clientData.user_email, // J
-    clientData.user_id, // K
-    clientData.record_id, // L
+    clientData.status, // H
+    clientData.user_email, // I
+    clientData.user_id, // J
+    clientData.record_id, // K
   ];
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tabName}!A:L`,
+    range: `${tabName}!A:K`,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },
@@ -103,7 +100,7 @@ export async function appendClientToSheet(
   return null;
 }
 
-// Atualiza o STATUS (coluna I) de uma linha específica da planilha.
+// Atualiza o STATUS (coluna H) de uma linha específica da planilha.
 // Só funciona se o número da linha (google_sheet_row) tiver sido salvo.
 export async function updateClientStatusInSheet(
   rowNumber: number,
@@ -114,7 +111,7 @@ export async function updateClientStatusInSheet(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tabName}!I${rowNumber}`,
+    range: `${tabName}!H${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [[newStatus]] },
   });
@@ -138,7 +135,6 @@ export async function updateGoogleSheetRow(
     clientData.servico,
     clientData.whatsapp,
     clientData.cnpj || "",
-    clientData.principais_informacoes_cliente,
     clientData.status,
     clientData.user_email,
     clientData.user_id,
@@ -147,7 +143,7 @@ export async function updateGoogleSheetRow(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tabName}!A${rowNumber}:L${rowNumber}`,
+    range: `${tabName}!A${rowNumber}:K${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [row] },
   });

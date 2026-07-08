@@ -130,15 +130,6 @@ export default function NovoClientePage() {
             })}
           />
 
-          <Textarea
-            id="principais_informacoes_cliente"
-            label="Principais informações do cliente *"
-            placeholder="Demanda, histórico, dores, alinhamentos, detalhes de contrato..."
-            rows={5}
-            error={errors.principais_informacoes_cliente?.message}
-            {...register("principais_informacoes_cliente")}
-          />
-
           <Select
             id="status"
             label="Status *"

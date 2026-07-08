@@ -80,8 +80,8 @@ async function main() {
   const idx = rows.findIndex((r) => (r[1] || "") === CLIENTE_NOME);
   if (idx === -1) throw new Error("Não encontrado na planilha!");
   const row = rows[idx];
-  console.log(`5) Na planilha (linha ${idx + 1}): SERVICO=${row[4]} | STATUS=${row[8]} | EMAIL_USUARIO=${row[9]}`);
-  console.log(`   → Serviço gravado como "Gestão de Tráfego"? ${row[4] === "Gestão de Tráfego" ? "SIM ✓" : "NÃO ✗ (" + row[4] + ")"} | vinculado à conta? ${row[9] === ADMIN_EMAIL ? "SIM ✓" : "NÃO ✗"}`);
+  console.log(`5) Na planilha (linha ${idx + 1}): SERVICO=${row[4]} | STATUS=${row[7]} | EMAIL_USUARIO=${row[8]}`);
+  console.log(`   → Serviço "Gestão de Tráfego"? ${row[4] === "Gestão de Tráfego" ? "SIM ✓" : "NÃO ✗ (" + row[4] + ")"} | vinculado à conta? ${row[8] === ADMIN_EMAIL ? "SIM ✓" : "NÃO ✗"}`);
 
   // 6) Confere no banco e limpa
   const { data: dbClient } = await admin.from("clients").select("id, user_id, status").eq("cliente", CLIENTE_NOME).single();
