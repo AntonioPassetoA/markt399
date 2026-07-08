@@ -7,11 +7,13 @@ import { google } from "googleapis";
 
 export interface SheetClientData {
   cliente: string;
+  area_de_atuacao: string;
   informacoes: string;
   impulsionamento: string;
   servico: string;
   whatsapp: string;
   cnpj?: string | null;
+  endereco: string;
 }
 
 // Formata uma data para o padrão brasileiro: DD/MM/YYYY HH:mm
@@ -56,7 +58,8 @@ function getSheetConfig() {
 }
 
 // Adiciona uma nova linha na planilha com os dados do cliente.
-// Colunas (A..F): CLIENTE, INFORMACOES, IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ.
+// Colunas (A..H): CLIENTE, AREA_DE_ATUACAO, INFORMACOES (sobre o negócio),
+// IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ, ENDERECO.
 // Retorna o número da linha inserida (para atualizações futuras) ou null.
 export async function appendClientToSheet(
   clientData: SheetClientData
@@ -66,16 +69,18 @@ export async function appendClientToSheet(
 
   const row = [
     clientData.cliente, // A
-    clientData.informacoes, // B
-    clientData.impulsionamento, // C
-    clientData.servico, // D
-    clientData.whatsapp, // E
-    clientData.cnpj || "", // F
+    clientData.area_de_atuacao, // B
+    clientData.informacoes, // C
+    clientData.impulsionamento, // D
+    clientData.servico, // E
+    clientData.whatsapp, // F
+    clientData.cnpj || "", // G
+    clientData.endereco, // H
   ];
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tabName}!A:F`,
+    range: `${tabName}!A:H`,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },
@@ -109,16 +114,18 @@ export async function updateGoogleSheetRow(
 
   const row = [
     clientData.cliente,
+    clientData.area_de_atuacao,
     clientData.informacoes,
     clientData.impulsionamento,
     clientData.servico,
     clientData.whatsapp,
     clientData.cnpj || "",
+    clientData.endereco,
   ];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tabName}!A${rowNumber}:F${rowNumber}`,
+    range: `${tabName}!A${rowNumber}:H${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [row] },
   });

@@ -7,10 +7,14 @@ export const clientSchema = z.object({
     .string()
     .trim()
     .min(2, "O nome do cliente deve ter pelo menos 2 caracteres."),
+  area_de_atuacao: z
+    .string()
+    .trim()
+    .min(2, "Informe a área de atuação."),
   informacoes: z
     .string()
     .trim()
-    .min(5, "As informações devem ter pelo menos 5 caracteres."),
+    .min(5, "Conte um pouco mais sobre o seu negócio (mínimo 5 caracteres)."),
   impulsionamento: z
     .string()
     .trim()
@@ -23,6 +27,7 @@ export const clientSchema = z.object({
     .trim()
     .min(10, "Informe um WhatsApp válido (mínimo 10 dígitos)."),
   cnpj: z.string().trim().min(14, "Informe o CNPJ completo."),
+  endereco: z.string().trim().min(3, "Informe o endereço."),
   // Campo mantido no schema/banco por compatibilidade, mas não é mais coletado
   // nos formulários (opcional).
   principais_informacoes_cliente: z.string().trim().optional().or(z.literal("")),

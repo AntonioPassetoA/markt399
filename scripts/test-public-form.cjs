@@ -52,11 +52,12 @@ async function main() {
   const payload = {
     token,
     cliente: CLIENTE_NOME,
+    area_de_atuacao: "Odontologia",
     informacoes: "Enviado pelo formulário público (teste)",
     impulsionamento: "R$ 1.000 por mês",
     whatsapp: "(11) 96666-5555",
     cnpj: "11.222.333/0001-81",
-    principais_informacoes_cliente: "Cliente preencheu sozinho via link",
+    endereco: "Rua Teste, 123 - Centro - SP",
   };
   const res = await fetch(`${BASE}/api/public/clients`, {
     method: "POST",
@@ -80,8 +81,8 @@ async function main() {
   const idx = rows.findIndex((r) => (r[0] || "") === CLIENTE_NOME);
   if (idx === -1) throw new Error("Não encontrado na planilha!");
   const row = rows[idx];
-  console.log(`5) Na planilha (linha ${idx + 1}): CLIENTE=${row[0]} | SERVICO=${row[3]} | WHATSAPP=${row[4]} | CNPJ=${row[5]}`);
-  console.log(`   → Serviço "Gestão de Tráfego"? ${row[3] === "Gestão de Tráfego" ? "SIM ✓" : "NÃO ✗ (" + row[3] + ")"} | só 6 colunas (A..F)? ${row.length <= 6 ? "SIM ✓" : "NÃO (" + row.length + " cols)"}`);
+  console.log(`5) Na planilha (linha ${idx + 1}): CLIENTE=${row[0]} | AREA=${row[1]} | SERVICO=${row[4]} | CNPJ=${row[6]} | ENDERECO=${row[7]}`);
+  console.log(`   → Serviço "Gestão de Tráfego"? ${row[4] === "Gestão de Tráfego" ? "SIM ✓" : "NÃO ✗ (" + row[4] + ")"} | Área e Endereço preenchidos? ${row[1] && row[7] ? "SIM ✓" : "NÃO ✗"}`);
 
   // 6) Confere no banco e limpa
   const { data: dbClient } = await admin.from("clients").select("id, user_id, status").eq("cliente", CLIENTE_NOME).single();

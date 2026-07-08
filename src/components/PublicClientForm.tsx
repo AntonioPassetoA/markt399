@@ -103,10 +103,18 @@ export function PublicClientForm({
                   {...register("cliente")}
                 />
 
+                <Input
+                  id="area_de_atuacao"
+                  label="Área de atuação *"
+                  placeholder="Ex.: Odontologia, Estética, Advocacia..."
+                  error={errors.area_de_atuacao?.message}
+                  {...register("area_de_atuacao")}
+                />
+
                 <Textarea
                   id="informacoes"
-                  label="Informações *"
-                  placeholder="Informações gerais sobre o seu negócio"
+                  label="Conte mais sobre o seu negócio *"
+                  placeholder="Fale sobre o seu negócio: o que faz, diferenciais, objetivos..."
                   error={errors.informacoes?.message}
                   {...register("informacoes")}
                 />
@@ -141,6 +149,14 @@ export function PublicClientForm({
                       e.target.value = maskCNPJ(e.target.value);
                     },
                   })}
+                />
+
+                <Input
+                  id="endereco"
+                  label="Endereço *"
+                  placeholder="Rua, número, bairro, cidade - UF"
+                  error={errors.endereco?.message}
+                  {...register("endereco")}
                 />
 
                 <div className="pt-2">

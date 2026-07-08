@@ -43,11 +43,13 @@ export async function POST(request: Request) {
       user_id: session.userId,
       user_email: session.email,
       cliente: data.cliente,
+      area_de_atuacao: data.area_de_atuacao,
       informacoes: data.informacoes,
       impulsionamento: data.impulsionamento,
       servico: data.servico,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
+      endereco: data.endereco,
       principais_informacoes_cliente: data.principais_informacoes_cliente || "",
       status: data.status,
       google_sheet_synced: false,
@@ -67,11 +69,13 @@ export async function POST(request: Request) {
   try {
     const rowNumber = await appendClientToSheet({
       cliente: data.cliente,
+      area_de_atuacao: data.area_de_atuacao,
       informacoes: data.informacoes,
       impulsionamento: data.impulsionamento,
       servico: data.servico,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
+      endereco: data.endereco,
     });
 
     sheetSynced = true;

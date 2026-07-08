@@ -1,5 +1,6 @@
-// Reconstrói a planilha "Clientes" com APENAS os 6 campos do cliente.
-// Colunas A..F: CLIENTE, INFORMACOES, IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ.
+// Reconstrói a planilha "Clientes" com os 8 campos do cliente.
+// Colunas A..H: CLIENTE, AREA_DE_ATUACAO, SOBRE_O_NEGOCIO, IMPULSIONAMENTO,
+// SERVICO, WHATSAPP, CNPJ, ENDERECO.
 // Uso: node scripts/rebuild-sheet.cjs
 const fs = require("fs");
 const path = require("path");
@@ -16,8 +17,11 @@ for (const line of envRaw.split(/\r?\n/)) {
   process.env[key] = val;
 }
 
-const HEADERS = ["CLIENTE", "INFORMACOES", "IMPULSIONAMENTO", "SERVICO", "WHATSAPP", "CNPJ"];
-const WIDTHS = [220, 260, 160, 160, 160, 170];
+const HEADERS = [
+  "CLIENTE", "AREA_DE_ATUACAO", "SOBRE_O_NEGOCIO", "IMPULSIONAMENTO",
+  "SERVICO", "WHATSAPP", "CNPJ", "ENDERECO",
+];
+const WIDTHS = [200, 170, 280, 150, 150, 150, 160, 240];
 
 const rgb = (hex) => ({
   red: parseInt(hex.slice(1, 3), 16) / 255,
@@ -39,13 +43,18 @@ async function main() {
   const sheet = meta.data.sheets.find((s) => s.properties.title === tabName);
   const sheetId = sheet.properties.sheetId;
 
-  // 1) Cabeçalho novo (A1:F1) + limpa colunas antigas (G..L)
+  // Relata quantas linhas de dados existem antes (a reordenação exige limpar).
+  const before = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${tabName}!A2:L` });
+  const dataRows = (before.data.values || []).filter((r) => r.some((c) => (c || "").trim() !== ""));
+  console.log(`Linhas de dados encontradas antes: ${dataRows.length}`);
+
+  // 1) Limpa TUDO (dados e colunas antigas) e escreve o novo cabeçalho
+  await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!A1:L` });
   await sheets.spreadsheets.values.update({
-    spreadsheetId, range: `${tabName}!A1:F1`,
+    spreadsheetId, range: `${tabName}!A1:H1`,
     valueInputOption: "USER_ENTERED", requestBody: { values: [HEADERS] },
   });
-  await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!G1:L` });
-  console.log("✓ Cabeçalho definido (6 colunas A..F) e colunas antigas (G..L) limpas.");
+  console.log("✓ Planilha limpa e cabeçalho (8 colunas A..H) definido.");
 
   const requests = [];
   requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { frozenRowCount: 1 } }, fields: "gridProperties.frozenRowCount" } });
@@ -56,15 +65,12 @@ async function main() {
   } });
   requests.push({ updateDimensionProperties: { range: { sheetId, dimension: "ROWS", startIndex: 0, endIndex: 1 }, properties: { pixelSize: 34 }, fields: "pixelSize" } });
   WIDTHS.forEach((w, i) => requests.push({ updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: i, endIndex: i + 1 }, properties: { pixelSize: w }, fields: "pixelSize" } }));
-
-  // Remove regras condicionais antigas (o STATUS não existe mais)
   const existing = (sheet.conditionalFormats || []).length;
   for (let i = existing - 1; i >= 0; i--) requests.push({ deleteConditionalFormatRule: { sheetId, index: i } });
-
   requests.push({ setBasicFilter: { filter: { range: { sheetId, startRowIndex: 0, startColumnIndex: 0, endColumnIndex: HEADERS.length } } } });
 
   await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
-  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, filtro A:F).");
+  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, filtro A:H).");
   console.log("\n🎨 Planilha reconstruída! Colunas:", HEADERS.join(" | "));
 }
 
