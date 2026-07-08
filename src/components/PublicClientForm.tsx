@@ -133,7 +133,7 @@ export function PublicClientForm({
 
                 <Input
                   id="cnpj"
-                  label="CNPJ"
+                  label="CNPJ *"
                   placeholder="00.000.000/0001-00"
                   error={errors.cnpj?.message}
                   {...register("cnpj", {

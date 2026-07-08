@@ -22,7 +22,7 @@ export const clientSchema = z.object({
     .string()
     .trim()
     .min(10, "Informe um WhatsApp válido (mínimo 10 dígitos)."),
-  cnpj: z.string().trim().optional().or(z.literal("")),
+  cnpj: z.string().trim().min(14, "Informe o CNPJ completo."),
   principais_informacoes_cliente: z
     .string()
     .trim()
