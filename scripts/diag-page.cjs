@@ -23,20 +23,14 @@ const PAGE = process.env.PAGE || "/dashboard/novo-cliente";
 async function main() {
   // Descobre/garante um usuário de teste com senha conhecida
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  // SEGURANÇA: sempre usa uma conta DESCARTÁVEL. Nunca redefine a senha de
+  // contas reais (isso já causou um incidente). O TEST_PROFILE_EMAIL é ignorado.
   const stamp = Date.now();
-  const email = EMAIL || `diag_${stamp}@teste-painel.com`;
+  const email = `diag_${stamp}@teste-painel.com`;
   const password = "SenhaDiag123!";
-  let createdId = null;
-  if (!EMAIL) {
-    const { data } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-    createdId = data?.user?.id;
-    await admin.from("profiles").insert({ id: createdId, name: "Diag", email, role: "user" });
-  } else {
-    // redefine a senha do usuário informado para conseguir logar
-    const { data: list } = await admin.auth.admin.listUsers();
-    const u = list.users.find((x) => x.email === EMAIL);
-    if (u) await admin.auth.admin.updateUserById(u.id, { password });
-  }
+  const { data } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  const createdId = data?.user?.id;
+  await admin.from("profiles").insert({ id: createdId, name: "Diag", email, role: "user" });
 
   const jar = {};
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {

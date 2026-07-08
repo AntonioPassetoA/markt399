@@ -55,7 +55,7 @@ async function main() {
     informacoes: "Enviado pelo formulário público (teste)",
     impulsionamento: "R$ 1.000 por mês",
     whatsapp: "(11) 96666-5555",
-    cnpj: "",
+    cnpj: "11.222.333/0001-81",
     principais_informacoes_cliente: "Cliente preencheu sozinho via link",
   };
   const res = await fetch(`${BASE}/api/public/clients`, {
