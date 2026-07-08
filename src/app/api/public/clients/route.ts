@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { publicClientSchema } from "@/lib/validations";
 import { appendClientToSheet } from "@/lib/googleSheets";
-import { STATUS_DEFAULT } from "@/lib/constants";
+import { STATUS_DEFAULT, SERVICO_PADRAO } from "@/lib/constants";
 import type { Client, Profile } from "@/types";
 
 // POST /api/public/clients — recebe o formulário PÚBLICO (sem login).
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       cliente: data.cliente,
       informacoes: data.informacoes,
       impulsionamento: data.impulsionamento,
-      servico: data.servico,
+      servico: SERVICO_PADRAO,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
       principais_informacoes_cliente: data.principais_informacoes_cliente,
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       cliente: data.cliente,
       informacoes: data.informacoes,
       impulsionamento: data.impulsionamento,
-      servico: data.servico,
+      servico: SERVICO_PADRAO,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
       principais_informacoes_cliente: data.principais_informacoes_cliente,

@@ -35,8 +35,12 @@ export const clientSchema = z.object({
 export type ClientFormData = z.infer<typeof clientSchema>;
 
 // Formulário público (o próprio cliente preenche): iguais ao clientSchema,
-// porém sem o campo "status" (entra como "Novo" automaticamente no servidor).
-export const publicClientSchema = clientSchema.omit({ status: true });
+// porém sem "status" (entra "Novo") e sem "servico" (entra o serviço único
+// "Gestão de Tráfego") — ambos definidos automaticamente no servidor.
+export const publicClientSchema = clientSchema.omit({
+  status: true,
+  servico: true,
+});
 export type PublicClientFormData = z.infer<typeof publicClientSchema>;
 
 // Para atualização (admin/edição): todos os campos opcionais.

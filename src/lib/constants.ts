@@ -1,6 +1,7 @@
 // Opções de Serviço e Status usadas em toda a aplicação (formulários, validação e filtros).
 
 export const SERVICO_OPTIONS = [
+  "Gestão de Tráfego",
   "Google Ads",
   "Meta Ads",
   "Google + Meta",
@@ -28,6 +29,9 @@ export type Servico = (typeof SERVICO_OPTIONS)[number];
 export type Status = (typeof STATUS_OPTIONS)[number];
 
 export const STATUS_DEFAULT: Status = "Novo";
+
+// Serviço único vendido — usado no formulário público (o cliente não escolhe).
+export const SERVICO_PADRAO = "Gestão de Tráfego";
 
 // Cores dos badges de status (Tailwind classes).
 export const STATUS_COLORS: Record<string, string> = {

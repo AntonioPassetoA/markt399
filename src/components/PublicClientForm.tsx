@@ -7,10 +7,8 @@ import {
   publicClientSchema,
   type PublicClientFormData,
 } from "@/lib/validations";
-import { SERVICO_OPTIONS } from "@/lib/constants";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
@@ -119,15 +117,6 @@ export function PublicClientForm({
                   placeholder='Ex.: "R$ 1.000 por mês", "R$ 50 por dia"'
                   error={errors.impulsionamento?.message}
                   {...register("impulsionamento")}
-                />
-
-                <Select
-                  id="servico"
-                  label="Serviço *"
-                  placeholder="Selecione um serviço"
-                  options={SERVICO_OPTIONS}
-                  error={errors.servico?.message}
-                  {...register("servico")}
                 />
 
                 <Input
