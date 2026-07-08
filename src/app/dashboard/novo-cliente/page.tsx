@@ -6,14 +6,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clientSchema, type ClientFormData } from "@/lib/validations";
-import {
-  STATUS_OPTIONS,
-  STATUS_DEFAULT,
-  SERVICO_PADRAO,
-} from "@/lib/constants";
+import { STATUS_DEFAULT, SERVICO_PADRAO } from "@/lib/constants";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
@@ -130,13 +125,8 @@ export default function NovoClientePage() {
             })}
           />
 
-          <Select
-            id="status"
-            label="Status *"
-            options={STATUS_OPTIONS}
-            error={errors.status?.message}
-            {...register("status")}
-          />
+          {/* Status fixo "Novo" — não é exibido, entra automático no envio. */}
+          <input type="hidden" {...register("status")} />
 
           <div className="flex gap-3 pt-2">
             <Button type="submit" loading={isSubmitting}>

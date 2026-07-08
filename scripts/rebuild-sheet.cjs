@@ -1,6 +1,5 @@
-// Reconstrói a planilha "Clientes" com o novo layout (sem PRINCIPAIS_INFORMACOES_CLIENTE).
-// Colunas A..K: DATA_HORA_ENVIO, CLIENTE, INFORMACOES, IMPULSIONAMENTO, SERVICO,
-// WHATSAPP, CNPJ, STATUS, EMAIL_USUARIO, ID_USUARIO, ID_REGISTRO.
+// Reconstrói a planilha "Clientes" com APENAS os 6 campos do cliente.
+// Colunas A..F: CLIENTE, INFORMACOES, IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ.
 // Uso: node scripts/rebuild-sheet.cjs
 const fs = require("fs");
 const path = require("path");
@@ -17,28 +16,14 @@ for (const line of envRaw.split(/\r?\n/)) {
   process.env[key] = val;
 }
 
-const HEADERS = [
-  "DATA_HORA_ENVIO", "CLIENTE", "INFORMACOES", "IMPULSIONAMENTO", "SERVICO",
-  "WHATSAPP", "CNPJ", "STATUS", "EMAIL_USUARIO", "ID_USUARIO", "ID_REGISTRO",
-];
-const STATUS_COL = 7; // coluna H (0-based)
-const WIDTHS = [140, 200, 230, 130, 130, 145, 150, 155, 220, 190, 190];
+const HEADERS = ["CLIENTE", "INFORMACOES", "IMPULSIONAMENTO", "SERVICO", "WHATSAPP", "CNPJ"];
+const WIDTHS = [220, 260, 160, 160, 160, 170];
 
 const rgb = (hex) => ({
   red: parseInt(hex.slice(1, 3), 16) / 255,
   green: parseInt(hex.slice(3, 5), 16) / 255,
   blue: parseInt(hex.slice(5, 7), 16) / 255,
 });
-const STATUS_STYLE = {
-  "Novo": ["#DBEAFE", "#1E40AF"],
-  "Em análise": ["#FEF9C3", "#854D0E"],
-  "Em atendimento": ["#E0E7FF", "#3730A3"],
-  "Contrato enviado": ["#F3E8FF", "#6B21A8"],
-  "Cliente ativo": ["#DCFCE7", "#166534"],
-  "Cliente pausado": ["#FFEDD5", "#9A3412"],
-  "Cliente finalizado": ["#E5E7EB", "#1F2937"],
-  "Perdido": ["#FEE2E2", "#991B1B"],
-};
 
 async function main() {
   const auth = new google.auth.JWT({
@@ -54,13 +39,13 @@ async function main() {
   const sheet = meta.data.sheets.find((s) => s.properties.title === tabName);
   const sheetId = sheet.properties.sheetId;
 
-  // 1) Cabeçalho novo (A1:K1) + limpa a coluna L (antigo ID_REGISTRO)
+  // 1) Cabeçalho novo (A1:F1) + limpa colunas antigas (G..L)
   await sheets.spreadsheets.values.update({
-    spreadsheetId, range: `${tabName}!A1:K1`,
+    spreadsheetId, range: `${tabName}!A1:F1`,
     valueInputOption: "USER_ENTERED", requestBody: { values: [HEADERS] },
   });
-  await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!L1:L` });
-  console.log("✓ Cabeçalho atualizado para 11 colunas (A..K) e coluna L limpa.");
+  await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!G1:L` });
+  console.log("✓ Cabeçalho definido (6 colunas A..F) e colunas antigas (G..L) limpas.");
 
   const requests = [];
   requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { frozenRowCount: 1 } }, fields: "gridProperties.frozenRowCount" } });
@@ -72,20 +57,14 @@ async function main() {
   requests.push({ updateDimensionProperties: { range: { sheetId, dimension: "ROWS", startIndex: 0, endIndex: 1 }, properties: { pixelSize: 34 }, fields: "pixelSize" } });
   WIDTHS.forEach((w, i) => requests.push({ updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: i, endIndex: i + 1 }, properties: { pixelSize: w }, fields: "pixelSize" } }));
 
-  // Remove regras condicionais antigas
+  // Remove regras condicionais antigas (o STATUS não existe mais)
   const existing = (sheet.conditionalFormats || []).length;
   for (let i = existing - 1; i >= 0; i--) requests.push({ deleteConditionalFormatRule: { sheetId, index: i } });
-  // Cores por STATUS na coluna H
-  Object.entries(STATUS_STYLE).forEach(([status, [bg, fg]]) => {
-    requests.push({ addConditionalFormatRule: { index: 0, rule: {
-      ranges: [{ sheetId, startRowIndex: 1, startColumnIndex: STATUS_COL, endColumnIndex: STATUS_COL + 1 }],
-      booleanRule: { condition: { type: "TEXT_EQ", values: [{ userEnteredValue: status }] }, format: { backgroundColor: rgb(bg), textFormat: { foregroundColor: rgb(fg), bold: true } } },
-    } } });
-  });
+
   requests.push({ setBasicFilter: { filter: { range: { sheetId, startRowIndex: 0, startColumnIndex: 0, endColumnIndex: HEADERS.length } } } });
 
   await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
-  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, cores de STATUS na coluna H, filtro A:K).");
+  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, filtro A:F).");
   console.log("\n🎨 Planilha reconstruída! Colunas:", HEADERS.join(" | "));
 }
 

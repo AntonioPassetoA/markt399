@@ -12,10 +12,6 @@ export interface SheetClientData {
   servico: string;
   whatsapp: string;
   cnpj?: string | null;
-  status: string;
-  user_email: string;
-  user_id: string;
-  record_id: string;
 }
 
 // Formata uma data para o padrão brasileiro: DD/MM/YYYY HH:mm
@@ -60,8 +56,7 @@ function getSheetConfig() {
 }
 
 // Adiciona uma nova linha na planilha com os dados do cliente.
-// Colunas (A..K): DATA_HORA_ENVIO, CLIENTE, INFORMACOES, IMPULSIONAMENTO,
-// SERVICO, WHATSAPP, CNPJ, STATUS, EMAIL_USUARIO, ID_USUARIO, ID_REGISTRO.
+// Colunas (A..F): CLIENTE, INFORMACOES, IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ.
 // Retorna o número da linha inserida (para atualizações futuras) ou null.
 export async function appendClientToSheet(
   clientData: SheetClientData
@@ -70,28 +65,23 @@ export async function appendClientToSheet(
   const { spreadsheetId, tabName } = getSheetConfig();
 
   const row = [
-    formatDateToBrazilian(new Date()), // A
-    clientData.cliente, // B
-    clientData.informacoes, // C
-    clientData.impulsionamento, // D
-    clientData.servico, // E
-    clientData.whatsapp, // F
-    clientData.cnpj || "", // G
-    clientData.status, // H
-    clientData.user_email, // I
-    clientData.user_id, // J
-    clientData.record_id, // K
+    clientData.cliente, // A
+    clientData.informacoes, // B
+    clientData.impulsionamento, // C
+    clientData.servico, // D
+    clientData.whatsapp, // E
+    clientData.cnpj || "", // F
   ];
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tabName}!A:K`,
+    range: `${tabName}!A:F`,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },
   });
 
-  // Extrai o número da linha a partir do range atualizado (ex: "Clientes!A5:L5").
+  // Extrai o número da linha a partir do range atualizado (ex: "Clientes!A5:F5").
   const updatedRange = response.data.updates?.updatedRange;
   if (updatedRange) {
     const match = updatedRange.match(/!A(\d+)/);
@@ -100,50 +90,35 @@ export async function appendClientToSheet(
   return null;
 }
 
-// Atualiza o STATUS (coluna H) de uma linha específica da planilha.
-// Só funciona se o número da linha (google_sheet_row) tiver sido salvo.
+// A planilha não tem mais coluna STATUS (apenas os 6 campos do cliente),
+// então sincronizar status virou no-op. O status continua no banco e no painel.
 export async function updateClientStatusInSheet(
-  rowNumber: number,
-  newStatus: string
+  _rowNumber: number,
+  _newStatus: string
 ): Promise<void> {
-  const sheets = getSheetsClient();
-  const { spreadsheetId, tabName } = getSheetConfig();
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `${tabName}!H${rowNumber}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values: [[newStatus]] },
-  });
+  return;
 }
 
-// Atualiza uma linha inteira da planilha (colunas A..L), preservando a data original.
-// Deixado preparado e documentado para edições completas feitas pelo admin.
+// Atualiza uma linha inteira da planilha (colunas A..F: os 6 campos do cliente).
 export async function updateGoogleSheetRow(
   rowNumber: number,
-  clientData: SheetClientData,
-  originalDateHora?: string
+  clientData: SheetClientData
 ): Promise<void> {
   const sheets = getSheetsClient();
   const { spreadsheetId, tabName } = getSheetConfig();
 
   const row = [
-    originalDateHora || formatDateToBrazilian(new Date()), // A
     clientData.cliente,
     clientData.informacoes,
     clientData.impulsionamento,
     clientData.servico,
     clientData.whatsapp,
     clientData.cnpj || "",
-    clientData.status,
-    clientData.user_email,
-    clientData.user_id,
-    clientData.record_id,
   ];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tabName}!A${rowNumber}:K${rowNumber}`,
+    range: `${tabName}!A${rowNumber}:F${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [row] },
   });

@@ -72,10 +72,6 @@ export async function POST(request: Request) {
       servico: data.servico,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      status: data.status,
-      user_email: session.email,
-      user_id: session.userId,
-      record_id: inserted.id,
     });
 
     sheetSynced = true;

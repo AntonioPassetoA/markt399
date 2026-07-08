@@ -85,10 +85,6 @@ export async function POST(request: Request) {
       servico: SERVICO_PADRAO,
       whatsapp: data.whatsapp,
       cnpj: data.cnpj || null,
-      status: STATUS_DEFAULT,
-      user_email: profile.email || "",
-      user_id: profile.id,
-      record_id: inserted.id,
     });
 
     await admin
