@@ -7,9 +7,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clientSchema, type ClientFormData } from "@/lib/validations";
 import {
-  SERVICO_OPTIONS,
   STATUS_OPTIONS,
   STATUS_DEFAULT,
+  SERVICO_PADRAO,
 } from "@/lib/constants";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -29,7 +29,7 @@ export default function NovoClientePage() {
     formState: { errors, isSubmitting },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
-    defaultValues: { status: STATUS_DEFAULT },
+    defaultValues: { servico: SERVICO_PADRAO, status: STATUS_DEFAULT },
   });
 
   async function onSubmit(data: ClientFormData) {
@@ -103,14 +103,8 @@ export default function NovoClientePage() {
             {...register("impulsionamento")}
           />
 
-          <Select
-            id="servico"
-            label="Serviço *"
-            placeholder="Selecione um serviço"
-            options={SERVICO_OPTIONS}
-            error={errors.servico?.message}
-            {...register("servico")}
-          />
+          {/* Serviço fixo ("Gestão de Tráfego") — não é exibido, vai no envio. */}
+          <input type="hidden" {...register("servico")} />
 
           <Input
             id="whatsapp"
