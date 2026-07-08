@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
+import { ShareFormLink } from "@/components/ShareFormLink";
 import { formatDate } from "@/lib/utils";
 import type { Client } from "@/types";
 
@@ -43,6 +44,8 @@ export default async function DashboardPage() {
           <Button>+ Novo cadastro</Button>
         </Link>
       </div>
+
+      <ShareFormLink userId={session.userId} />
 
       {clients.length === 0 ? (
         <EmptyState

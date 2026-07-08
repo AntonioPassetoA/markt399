@@ -19,7 +19,7 @@ for (const line of envRaw.split(/\r?\n/)) {
   process.env[key] = val;
 }
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE_URL || "http://localhost:3000";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const stamp = Date.now();
