@@ -7,6 +7,12 @@ Cada cliente cadastrado é salvo no **Supabase** e enviado automaticamente para 
 aba do Google Sheets. Usuários comuns veem apenas os próprios clientes; administradores
 veem e gerenciam todos.
 
+Além do cadastro interno, existe um **formulário público** (link fixo por conta) que o
+próprio cliente preenche sem login — o registro cai automaticamente na conta que gerou o
+link e na planilha. Veja a seção [Formulário público](#formulário-público).
+
+> **Em produção:** https://painel.airesults.cloud
+
 ## Stack
 
 - **Next.js 15** (App Router) + **TypeScript**
@@ -61,11 +67,15 @@ Isso cria as tabelas `profiles` e `clients` com as políticas de RLS necessária
 
 1. Crie uma planilha no Google Sheets.
 2. Renomeie a aba para **Clientes** (ou o valor que usará em `GOOGLE_SHEET_TAB_NAME`).
-3. (Opcional) Na primeira linha, adicione os cabeçalhos:
+3. (Opcional) Na primeira linha, adicione os cabeçalhos (colunas A–I):
 
    ```
-   DATA_HORA_ENVIO | CLIENTE | INFORMACOES | IMPULSIONAMENTO | SERVICO | WHATSAPP | CNPJ | PRINCIPAIS_INFORMACOES_CLIENTE | STATUS | EMAIL_USUARIO | ID_USUARIO | ID_REGISTRO
+   CLIENTE | AREA_DE_ATUACAO | SOBRE_O_NEGOCIO | IMPULSIONAMENTO | SERVICO | EMAIL | WHATSAPP | CNPJ | ENDERECO
    ```
+
+   > Dica: rode `node scripts/rebuild-sheet.cjs` para criar/formatar a aba já com esse
+   > cabeçalho (atenção: esse script **limpa** os dados). Para só adicionar uma coluna
+   > sem perder dados, use um script de referência como `scripts/add-email-column.cjs`.
 
 4. Clique em **Compartilhar** e adicione o **e-mail da Service Account**
    (`GOOGLE_SERVICE_ACCOUNT_EMAIL`) com permissão de **Editor**.
@@ -126,35 +136,72 @@ Faça login com esse usuário e acesse **/admin**.
 
 ## 7. Publicar o projeto (produção)
 
-Recomendado: **Vercel**.
+O projeto está publicado em uma **VPS Hostinger** (Ubuntu) com **PM2** (gerenciador de
+processo) + **Nginx** (proxy reverso) + **Certbot/Let's Encrypt** (SSL) no subdomínio
+**https://painel.airesults.cloud**.
 
-1. Suba o repositório para o GitHub.
-2. Em [vercel.com](https://vercel.com), importe o projeto.
-3. Em **Settings → Environment Variables**, adicione TODAS as variáveis do `.env.local`.
-   - Para `GOOGLE_PRIVATE_KEY`, cole o valor com `\n` (com aspas) — funciona igual.
-4. Faça o deploy. As rotas de API e a integração com o Google Sheets rodam no servidor.
+Fluxo de atualização (a partir da máquina local):
+
+1. `git push` para o GitHub.
+2. Sincronizar o código para a VPS (o repositório é privado; usa-se `tar` over SSH).
+3. Na VPS, **sempre build limpo**:
+
+   ```bash
+   cd /var/www/painel-de-clientes
+   rm -rf .next && npm run build && pm2 restart painel-clientes
+   ```
+
+   > Deploy incremental (sem apagar `.next`) já causou "client-side exception" por
+   > chunks inconsistentes — por isso o `rm -rf .next` é obrigatório.
+
+O `.env.local` fica **apenas na VPS** (não vai para o Git). As rotas de API e a
+integração com o Google Sheets rodam no servidor.
+
+> Alternativa: a Vercel também funciona — importe o repositório e adicione todas as
+> variáveis do `.env.local` em **Settings → Environment Variables** (para
+> `GOOGLE_PRIVATE_KEY`, cole o valor com `\n`, entre aspas).
 
 ---
 
-## Estrutura da planilha (colunas A–L)
+## Estrutura da planilha (colunas A–I)
 
 | Coluna | Campo |
 |--------|-------|
-| A | DATA_HORA_ENVIO (`DD/MM/YYYY HH:mm`) |
-| B | CLIENTE |
-| C | INFORMACOES |
+| A | CLIENTE |
+| B | AREA_DE_ATUACAO |
+| C | SOBRE_O_NEGOCIO (informações do negócio) |
 | D | IMPULSIONAMENTO |
-| E | SERVICO |
-| F | WHATSAPP |
-| G | CNPJ |
-| H | PRINCIPAIS_INFORMACOES_CLIENTE |
-| I | STATUS |
-| J | EMAIL_USUARIO |
-| K | ID_USUARIO |
-| L | ID_REGISTRO |
+| E | SERVICO (fixo: "Gestão de Tráfego") |
+| F | EMAIL |
+| G | WHATSAPP |
+| H | CNPJ |
+| I | ENDERECO |
 
 Cada novo cadastro gera uma nova linha. Se o envio ao Sheets falhar, o cliente ainda
-é salvo no banco com `google_sheet_synced = false`.
+é salvo no banco com `google_sheet_synced = false`. O status do cliente é controlado
+no banco/painel (não fica mais na planilha). Quando o **admin exclui** um cliente, a
+linha correspondente também é **removida da planilha**.
+
+---
+
+## Formulário público
+
+Cada conta tem um **link fixo** (`/formulario/<token>`, onde o token é o id do perfil)
+que pode ser enviado ao cliente final. Ele preenche os dados **sem login** e o registro
+cai automaticamente na conta que gerou o link + na planilha.
+
+- Campos preenchidos pelo cliente: **Cliente, Área de atuação, Conte mais sobre o seu
+  negócio, Impulsionamento, E-mail, WhatsApp, CNPJ, Endereço** (todos obrigatórios).
+- O **Serviço** ("Gestão de Tráfego") e o **Status** ("Novo") são definidos
+  automaticamente no servidor.
+- No dashboard há um cartão **"Compartilhar formulário"** para copiar/abrir o link.
+
+Teste de ponta a ponta em produção:
+
+```bash
+BASE_URL=https://painel.airesults.cloud TEST_PROFILE_EMAIL=seu-email@conta.com \
+  node scripts/test-public-form.cjs
+```
 
 ---
 
@@ -164,8 +211,11 @@ Cada novo cadastro gera uma nova linha. Se o envio ao Sheets falhar, o cliente a
 2. Faça login → **/dashboard**.
 3. **Novo cadastro** → preencha e salve.
 4. Veja o cliente no dashboard e na planilha do Google.
-5. Faça logout e entre com um usuário **admin**.
-6. Acesse **/admin** → filtre, busque e altere status.
+5. Copie o link em **"Compartilhar formulário"** e teste o cadastro público em
+   `/formulario/<token>`.
+6. Faça logout e entre com um usuário **admin**.
+7. Acesse **/admin** → filtre, busque, altere status e exclua (a exclusão também
+   remove a linha da planilha).
 
 ## Rotas / API
 
@@ -174,5 +224,6 @@ Cada novo cadastro gera uma nova linha. Se o envio ao Sheets falhar, o cliente a
 | POST | `/api/auth/register` | Cria usuário + perfil |
 | POST | `/api/clients` | Cria cliente (banco + Sheets) |
 | GET | `/api/clients` | Lista clientes (próprios ou todos, se admin) |
-| PATCH | `/api/clients/[id]` | Edita cliente / status (sincroniza status no Sheets) |
-| DELETE | `/api/clients/[id]` | Exclui cliente (somente admin) |
+| PATCH | `/api/clients/[id]` | Edita cliente / status |
+| DELETE | `/api/clients/[id]` | Exclui cliente + remove da planilha (somente admin) |
+| POST | `/api/public/clients` | Recebe o formulário público (sem login) |
