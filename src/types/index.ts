@@ -11,6 +11,7 @@ export interface Client {
   informacoes: string;
   impulsionamento: string;
   servico: Servico | string;
+  email: string | null;
   whatsapp: string;
   cnpj: string | null;
   endereco: string | null;

@@ -11,6 +11,7 @@ export interface SheetClientData {
   informacoes: string;
   impulsionamento: string;
   servico: string;
+  email: string;
   whatsapp: string;
   cnpj?: string | null;
   endereco: string;
@@ -58,8 +59,8 @@ function getSheetConfig() {
 }
 
 // Adiciona uma nova linha na planilha com os dados do cliente.
-// Colunas (A..H): CLIENTE, AREA_DE_ATUACAO, INFORMACOES (sobre o negócio),
-// IMPULSIONAMENTO, SERVICO, WHATSAPP, CNPJ, ENDERECO.
+// Colunas (A..I): CLIENTE, AREA_DE_ATUACAO, INFORMACOES (sobre o negócio),
+// IMPULSIONAMENTO, SERVICO, EMAIL, WHATSAPP, CNPJ, ENDERECO.
 // Retorna o número da linha inserida (para atualizações futuras) ou null.
 export async function appendClientToSheet(
   clientData: SheetClientData
@@ -73,14 +74,15 @@ export async function appendClientToSheet(
     clientData.informacoes, // C
     clientData.impulsionamento, // D
     clientData.servico, // E
-    clientData.whatsapp, // F
-    clientData.cnpj || "", // G
-    clientData.endereco, // H
+    clientData.email, // F
+    clientData.whatsapp, // G
+    clientData.cnpj || "", // H
+    clientData.endereco, // I
   ];
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tabName}!A:H`,
+    range: `${tabName}!A:I`,
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },
@@ -104,7 +106,7 @@ export async function updateClientStatusInSheet(
   return;
 }
 
-// Atualiza uma linha inteira da planilha (colunas A..F: os 6 campos do cliente).
+// Atualiza uma linha inteira da planilha (colunas A..I: os campos do cliente).
 export async function updateGoogleSheetRow(
   rowNumber: number,
   clientData: SheetClientData
@@ -118,6 +120,7 @@ export async function updateGoogleSheetRow(
     clientData.informacoes,
     clientData.impulsionamento,
     clientData.servico,
+    clientData.email,
     clientData.whatsapp,
     clientData.cnpj || "",
     clientData.endereco,
@@ -125,7 +128,7 @@ export async function updateGoogleSheetRow(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tabName}!A${rowNumber}:H${rowNumber}`,
+    range: `${tabName}!A${rowNumber}:I${rowNumber}`,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [row] },
   });

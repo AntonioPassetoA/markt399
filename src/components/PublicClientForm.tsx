@@ -128,6 +128,15 @@ export function PublicClientForm({
                 />
 
                 <Input
+                  id="email"
+                  type="email"
+                  label="E-mail *"
+                  placeholder="nome@email.com"
+                  error={errors.email?.message}
+                  {...register("email")}
+                />
+
+                <Input
                   id="whatsapp"
                   label="WhatsApp *"
                   placeholder="(11) 99999-9999"

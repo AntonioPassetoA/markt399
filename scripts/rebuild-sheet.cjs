@@ -1,6 +1,6 @@
-// Reconstrói a planilha "Clientes" com os 8 campos do cliente.
-// Colunas A..H: CLIENTE, AREA_DE_ATUACAO, SOBRE_O_NEGOCIO, IMPULSIONAMENTO,
-// SERVICO, WHATSAPP, CNPJ, ENDERECO.
+// Reconstrói a planilha "Clientes" com os 9 campos do cliente.
+// Colunas A..I: CLIENTE, AREA_DE_ATUACAO, SOBRE_O_NEGOCIO, IMPULSIONAMENTO,
+// SERVICO, EMAIL, WHATSAPP, CNPJ, ENDERECO.
 // Uso: node scripts/rebuild-sheet.cjs
 const fs = require("fs");
 const path = require("path");
@@ -19,9 +19,9 @@ for (const line of envRaw.split(/\r?\n/)) {
 
 const HEADERS = [
   "CLIENTE", "AREA_DE_ATUACAO", "SOBRE_O_NEGOCIO", "IMPULSIONAMENTO",
-  "SERVICO", "WHATSAPP", "CNPJ", "ENDERECO",
+  "SERVICO", "EMAIL", "WHATSAPP", "CNPJ", "ENDERECO",
 ];
-const WIDTHS = [200, 170, 280, 150, 150, 150, 160, 240];
+const WIDTHS = [200, 170, 280, 150, 150, 220, 150, 160, 240];
 
 const rgb = (hex) => ({
   red: parseInt(hex.slice(1, 3), 16) / 255,
@@ -51,10 +51,10 @@ async function main() {
   // 1) Limpa TUDO (dados e colunas antigas) e escreve o novo cabeçalho
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!A1:L` });
   await sheets.spreadsheets.values.update({
-    spreadsheetId, range: `${tabName}!A1:H1`,
+    spreadsheetId, range: `${tabName}!A1:I1`,
     valueInputOption: "USER_ENTERED", requestBody: { values: [HEADERS] },
   });
-  console.log("✓ Planilha limpa e cabeçalho (8 colunas A..H) definido.");
+  console.log("✓ Planilha limpa e cabeçalho (9 colunas A..I) definido.");
 
   const requests = [];
   requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { frozenRowCount: 1 } }, fields: "gridProperties.frozenRowCount" } });
@@ -70,7 +70,7 @@ async function main() {
   requests.push({ setBasicFilter: { filter: { range: { sheetId, startRowIndex: 0, startColumnIndex: 0, endColumnIndex: HEADERS.length } } } });
 
   await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
-  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, filtro A:H).");
+  console.log("✓ Formatação aplicada (cabeçalho azul, congelado, larguras, filtro A:I).");
   console.log("\n🎨 Planilha reconstruída! Colunas:", HEADERS.join(" | "));
 }
 

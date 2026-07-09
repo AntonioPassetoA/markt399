@@ -22,6 +22,7 @@ export const clientSchema = z.object({
   servico: z.enum(SERVICO_OPTIONS, {
     errorMap: () => ({ message: "Selecione um serviço válido." }),
   }),
+  email: z.string().trim().email("Informe um e-mail válido."),
   whatsapp: z
     .string()
     .trim()
