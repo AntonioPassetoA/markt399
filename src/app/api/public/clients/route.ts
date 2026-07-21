@@ -3,12 +3,33 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { publicClientSchema } from "@/lib/validations";
 import { appendClientToSheet } from "@/lib/googleSheets";
 import { STATUS_DEFAULT, SERVICO_PADRAO } from "@/lib/constants";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
 import type { Client, Profile } from "@/types";
+
+// Limite anti-spam do formulário público: no máximo 5 envios por minuto por IP.
+const RL_LIMIT = 5;
+const RL_WINDOW_MS = 60_000;
 
 // POST /api/public/clients — recebe o formulário PÚBLICO (sem login).
 // O "token" é o id do perfil da agência que gerou o link. Cada envio cria
 // um cliente vinculado a essa agência e sincroniza com o Google Sheets.
 export async function POST(request: Request) {
+  // Proteção contra spam/abuso: limita envios por IP.
+  const ip = getClientIp(request);
+  const rl = rateLimit(`public-form:${ip}`, RL_LIMIT, RL_WINDOW_MS);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "Muitos envios em pouco tempo. Aguarde um instante e tente novamente.",
+      },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSeconds) },
+      }
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();

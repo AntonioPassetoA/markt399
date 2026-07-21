@@ -1,10 +1,30 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { signUpSchema } from "@/lib/validations";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
+
+// Limite anti-abuso do cadastro de contas: 5 tentativas por IP a cada 5 minutos.
+const RL_LIMIT = 5;
+const RL_WINDOW_MS = 5 * 60_000;
 
 // Cria o usuário no Supabase Auth (já confirmado) e o perfil correspondente.
 // Usa service_role para que o fluxo funcione mesmo com confirmação de e-mail ativa.
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rl = rateLimit(`register:${ip}`, RL_LIMIT, RL_WINDOW_MS);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "Muitas tentativas em pouco tempo. Aguarde um instante e tente novamente.",
+      },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSeconds) },
+      }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
